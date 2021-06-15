@@ -1,0 +1,18 @@
+{
+  "name": "delilah-resto",
+  "version": "1.0.0",
+  "description": "Acamica's Full Stack Web Development 3rd project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Franco Paganucci",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "express-jwt": "^6.0.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.6.2"
+  }
+}
