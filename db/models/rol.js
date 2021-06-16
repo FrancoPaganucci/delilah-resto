@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../db'); // el '/index/' al ser "index" es opcional
+const sequelize = require('..'); // el '/index/' al ser "index" es opcional
 
 const Rol = sequelize.define('rol', {
     nombre: {
@@ -8,7 +8,9 @@ const Rol = sequelize.define('rol', {
     }
 }, {
     timestamps: false,
-    tableName: "roles"
+    tableName: "roles",
+    modelName: "rol",
+    sequelize
 })
 
 module.exports = Rol;

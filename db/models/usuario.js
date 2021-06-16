@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../db'); // el '/index/' al ser "index" es opcional
+const sequelize = require('..'); // el '/index/' al ser "index" es opcional
 
 const Usuario = sequelize.define(
     'usuario', {
@@ -30,7 +30,9 @@ const Usuario = sequelize.define(
 
 }, {
     timestamps: false,
-    tableName: "usuarios"
+    tableName: "usuarios",
+    modelname: "usuario",
+    sequelize
 })
 
 module.exports = Usuario;
