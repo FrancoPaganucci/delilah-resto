@@ -4,19 +4,19 @@ const sequelize = require('..');
 const Plato = sequelize.define('plato', {
     nombre: {
         type: DataTypes.STRING,
-        allowNull = false
+        notNull: true
     },
     precio: {
         type: DataTypes.DOUBLE,
-        allowNull = false
+        notNull: true
     },
     activo: {
         type: DataTypes.TINYINT,
-        allowNull = false
+        notNull: true
     },
     imagen: {
         type: DataTypes.STRING,
-        allowNull = false
+        notNull: true
     },
 
 }, {

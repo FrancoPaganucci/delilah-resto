@@ -16,4 +16,4 @@ PedidoHasPlatos.belongsTo(Plato, {
 });
 
 
-module.exports = { Rol, Usuario, Pedido };
+module.exports = { Rol, Usuario, Pedido, Plato, PedidoHasPlatos };

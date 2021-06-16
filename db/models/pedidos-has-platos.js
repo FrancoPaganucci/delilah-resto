@@ -4,7 +4,7 @@ const sequelize = require('..');
 const PedidoHasPlatos = sequelize.define('PedidoHasPlatos', {
     cantidad: {
         type: DataTypes.INTEGER,
-        allowNull = false
+        notNull: true
     }
 }, {
     timestamps: false,

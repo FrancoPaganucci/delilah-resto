@@ -5,27 +5,27 @@ const Usuario = sequelize.define(
     'usuario', {
     usuario: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     nombre: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     correo: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     telefono: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     direccion: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     contrasena: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
 
 }, {
