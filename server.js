@@ -50,23 +50,42 @@ server.use(cors());
 // get usuarios
 
 // =========================================== PLATOS =============================================
+const validarBodyPlato = (req, res, next) => {
+  if (
+      !req.body.nombre||
+      !req.body.precio ||
+      !req.body.imagen
+  ) {
+      res.status(400).json({
+          error: "Debe enviar los datos completos del plato",
+      });
+  } else {
+      next();
+  }
+};
+
+
+
 // Crear plato
-server.post('/platos', (req, res) => {
-  Plato.create({
-    nombre: req.body.nombre,
-    precio: req.body.precio,
-    activo: 1,
-    imagen: req.body.imagen
-  }).then(plato => {
-    res.status(200).json(plato);
-  }).catch(error => {
-    res.status(400).json({ error: error.message });
-  })
+server.post('/platos', validarBodyPlato, async (req, res) => {
+  try {
+    const nuevo_plato = await Plato.create({
+      nombre: req.body.nombre,
+      precio: req.body.precio,
+      activo: 1,
+      imagen: req.body.imagen
+    });
+
+    res.status(200).json({nuevo_plato});
+  } catch (error) {
+    res.send({error: error.message});
+  };
+
 });
 
 // Leer platos
-server.get('/platos', (req, res) => {
-  Plato.findAll().then(platos => {
+server.get('/platos', async (req, res) => {
+  await Plato.findAll().then(platos => {
     res.status(200).json(platos);
   }).catch(error => {
     res.status(404).json({ error: error.message })
