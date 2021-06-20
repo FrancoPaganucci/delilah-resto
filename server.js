@@ -26,10 +26,9 @@ server.use(cors());
       secret: secretJWT,
       algorithms: ["HS256"],
     }).unless({
-      path: ["/login"],
+      path: ["/login", "/register"]
     })
-  );
-  */
+  );*/
 
 // ============================
 // ======== ROUTING ===========
@@ -37,17 +36,145 @@ server.use(cors());
 // =========================================== USUARIOS ===========================================
 
 // VALIDACIONES
+// validación body register
+const validarBodyRegister = (req, res, next) => {
+  if (
+      !req.body.usuario ||
+      !req.body.nombre ||
+      !req.body.correo ||
+      !req.body.telefono ||
+      !req.body.direccion ||
+      !req.body.contrasena
+  ) {
+      res.status(400).json({
+          error: "debe registrarse con los datos completos",
+      });
+  } else {
+      next();
+  }
+};
 
+// validación de usuario en DB (validar nombre y correo por separado)
+const validarUsuario = async (req, res, next) => {
+  try {
+    const usuarioExistente = await Usuario.findOne({
+      where: {
+        nombre: req.body.usuario
+      }
+    });
+    if (usuarioExistente) {
+      res.status(409).json({ error: `El nombre pertenece a un usuario registrado` });
+    } else {
+      next();
+    }
+  } catch (error) {
+    res.send({ error: error.message });
+  }
+
+};
+
+const validarUsuarioCorreo = async (req, res, next) => {
+  try {
+    const usuarioExistente = await Usuario.findOne({
+      where: {
+        correo: req.body.correo
+      }
+    });
+
+    if (usuarioExistente) {
+      res.status(409).json({ error: `Ya existe una cuenta registrada con ese correo` });
+    } else {
+      next();
+    }
+  } catch (error) {
+    res.send({ error: error.message });
+  }
+};
+
+
+// validaciones login
+const validarBodyLogin = (req, res, next) => {
+  if (
+      !req.body.correo ||
+      !req.body.contrasena
+  ) {
+      res.status(400).json({
+          error: "debe registrarse con los datos completos",
+      });
+  } else {
+      next();
+  }
+};
+
+const verificarLogin = async (req, res, next) => {
+  try {
+    const loginOk = await Usuario.findOne({
+      where: {
+        correo: req.body.correo,
+        password: req.body.contrasena
+      }
+    });
+
+    if (!loginOk) {
+      res.status(400).json({
+        error: "Credenciales incorrectas"
+      })
+    } else {
+      next();
+    }
+
+  } catch (error) {
+    res.send({ error: error.message });
+  }
+};
 
 
 // RUTAS
 // post register
-
+server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuario, (req, res) => {
+  // ¿Cómo asignar el rols_id a este usuario en el registro si en realidad es asignarle un valor a otra tabla?
+  Usuario.create({
+      usuario: req.body.usuario,
+      nombre: req.body.nombre,
+      correo: req.body.correo,
+      telefono: req.body.telefono,
+      direccion: req.body.direccion,
+      contrasena: req.body.contrasena, 
+  }).then(usuario => {
+      res.status(200).json({ usuario });
+  }).catch(error => {
+      res.status(400).json({ error: error.message });
+  });
+})
 
 // post login
+server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
+  try {
+    const token = await jwt.sign(
+      {
+        nombre: req.body.nombre,
+        correo: req.body.correo,
+      },
+      secretJWT,
+      { expiresIn: "60m" }
+    );
+    res.status(200).json({ token });
+  } catch (error) {
+    res.send({ error: error.message });
+  }
 
+});
 
 // get usuarios
+server.get('/usuarios', (req, res) => {
+  Usuario.findAll().then(usuarios => {
+      res.json(usuarios);
+  }).catch(error => {
+      res.send(error.message);
+  })
+})
+
+
 
 // =========================================== PLATOS =============================================
 const validarBodyPlato = (req, res, next) => {
@@ -127,7 +254,6 @@ server.put('/borrarPlato/:platoId', (req,res) => {
 
 
 // =========================================== PEDIDOS ===========================================
-
 
 
 
