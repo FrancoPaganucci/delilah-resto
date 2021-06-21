@@ -21,14 +21,14 @@ server.use(helmet());
 server.use(express.json());
 server.use(compression());
 server.use(cors());
-/*server.use(
+server.use(
     expressJwt({
       secret: secretJWT,
       algorithms: ["HS256"],
     }).unless({
       path: ["/login", "/register"]
     })
-  );*/
+  );
 
 // ============================
 // ======== ROUTING ===========
@@ -112,7 +112,7 @@ const verificarLogin = async (req, res, next) => {
     const loginOk = await Usuario.findOne({
       where: {
         correo: req.body.correo,
-        password: req.body.contrasena
+        contrasena: req.body.contrasena
       }
     });
 
@@ -181,11 +181,21 @@ server.get('/usuarios', (req, res) => {
 
 // Validación administradores
 const validarRolAdmin = async (req, res, next) => {
-  const usuario = await Usuario.findOne({
-    where: {
-      // ¿Cómo puedo leer el rols_id del solicitante? ¿Lo envío en el payload del JWT? ¿Cómo accedo?
+  try {
+    const usuario = await Usuario.findOne({
+      where: {
+        correo: req.user.correo
+      }
+    });
+
+    if (usuario.rols_id === 1) {
+      res.status(400).json({ error: "Acceso denegado. Solo para administradores" });
+    } else {
+      next();
     }
-  });
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
 };
 
 
@@ -206,7 +216,7 @@ const validarBodyPlato = (req, res, next) => {
 
 
 // Crear plato SOLO ADMINS
-server.post('/platos', validarBodyPlato, async (req, res) => {
+server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
   try {
     const nuevo_plato = await Plato.create({
       nombre: req.body.nombre,
@@ -249,7 +259,7 @@ server.get('/plato/:id', (req,res) => {
 
 
 // Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) SOLO ADMINS
-server.put('/borrarPlato/:platoId', (req,res) => {
+server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
   Plato.update(
     {activo : 0},
     {where: {
@@ -267,6 +277,15 @@ server.put('/borrarPlato/:platoId', (req,res) => {
 
 // =========================================== PEDIDOS ===========================================
 
+
+// crear pedido
+server.post('/nuevopedido', (req,res) => {
+  
+});
+
+
+
+// GET de todos los pedidos ADMIN SOLAMENTE
 
 
 
