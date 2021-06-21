@@ -44,7 +44,8 @@ const validarBodyRegister = (req, res, next) => {
       !req.body.correo ||
       !req.body.telefono ||
       !req.body.direccion ||
-      !req.body.contrasena
+      !req.body.contrasena ||
+      !req.body.rols_id
   ) {
       res.status(400).json({
           error: "debe registrarse con los datos completos",
@@ -59,11 +60,11 @@ const validarUsuario = async (req, res, next) => {
   try {
     const usuarioExistente = await Usuario.findOne({
       where: {
-        nombre: req.body.usuario
+        usuario: req.body.usuario
       }
     });
     if (usuarioExistente) {
-      res.status(409).json({ error: `El nombre pertenece a un usuario registrado` });
+      res.status(409).json({ error: `El usuario pertenece a un usuario registrado` });
     } else {
       next();
     }
@@ -130,9 +131,8 @@ const verificarLogin = async (req, res, next) => {
 
 
 // RUTAS
-// post register
+// post register usuario
 server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuario, (req, res) => {
-  // ¿Cómo asignar el rols_id a este usuario en el registro si en realidad es asignarle un valor a otra tabla?
   Usuario.create({
       usuario: req.body.usuario,
       nombre: req.body.nombre,
@@ -140,6 +140,7 @@ server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuar
       telefono: req.body.telefono,
       direccion: req.body.direccion,
       contrasena: req.body.contrasena, 
+      rols_id: req.body.rols_id
   }).then(usuario => {
       res.status(200).json({ usuario });
   }).catch(error => {
@@ -152,7 +153,7 @@ server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
   try {
     const token = await jwt.sign(
       {
-        nombre: req.body.nombre,
+        usuario: req.body.usuario,
         correo: req.body.correo,
       },
       secretJWT,
@@ -177,6 +178,17 @@ server.get('/usuarios', (req, res) => {
 
 
 // =========================================== PLATOS =============================================
+
+// Validación administradores
+const validarRolAdmin = async (req, res, next) => {
+  const usuario = await Usuario.findOne({
+    where: {
+      // ¿Cómo puedo leer el rols_id del solicitante? ¿Lo envío en el payload del JWT? ¿Cómo accedo?
+    }
+  });
+};
+
+
 const validarBodyPlato = (req, res, next) => {
   if (
       !req.body.nombre||
@@ -193,7 +205,7 @@ const validarBodyPlato = (req, res, next) => {
 
 
 
-// Crear plato
+// Crear plato SOLO ADMINS
 server.post('/platos', validarBodyPlato, async (req, res) => {
   try {
     const nuevo_plato = await Plato.create({
@@ -233,10 +245,10 @@ server.get('/plato/:id', (req,res) => {
 })
 
 
-// Actualizar plato x id
+// Actualizar plato x id SOLO ADMINS
 
 
-// Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB)
+// Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) SOLO ADMINS
 server.put('/borrarPlato/:platoId', (req,res) => {
   Plato.update(
     {activo : 0},
