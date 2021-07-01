@@ -5,16 +5,17 @@ const compression = require('compression');
 const expressJwt = require("express-jwt");
 const jwt = require("jsonwebtoken");
 // esto se guarda como variable de entorno
-const secretJWT = "escribiralgomuyseguro123456789-lbjnwef89h234234rbhjuiiiiiiiii";
+const secretJWT = process.env.JWT_SECRET;
 
 // require database
-const db = require('./db');
+const db = require('./config');
 
 // instancia de Express
 const server = express();
-const PORT = 3000;
+const PORT = process.env.APP_PORT;
 // instanciar modelos
-const { Rol, Usuario, Pedido, Plato, PedidoHasPlatos } = require('./db/models/relations');
+const { Rol, Usuario, Pedido, Plato, PedidoHasPlatos } = require('./models/relations');
+const { findAll } = require('./models/rol');
 
 // middlewares
 server.use(helmet());
@@ -193,6 +194,7 @@ const validarRolAdmin = async (req, res, next) => {
     } else {
       next();
     }
+    
   } catch (error) {
     res.status(400).json({ error: error.message })
   }
@@ -234,24 +236,26 @@ server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
 
 // Leer platos
 server.get('/platos', async (req, res) => {
-  await Plato.findAll().then(platos => {
-    res.status(200).json(platos);
-  }).catch(error => {
+  try {
+    const allPlatos = await Plato.findAll();
+    res.status(200).json(allPlatos);
+  } catch (error) {
     res.status(404).json({ error: error.message })
-  });
-})
+  }
+});
 
 // Leer plato x id
-server.get('/plato/:id', (req,res) => {
-  Plato.findOne({
-    where: {
-      id: req.params.id
-    }
-  }).then(plato => {
-    res.status(200).json(plato);
-  }).catch(error => {
-    res.status(404).json({error: error.message});
-  })
+server.get('/plato/:id', async (req, res) => {
+  try {
+    const PlatoOk = await Plato.findOne({
+      where: {
+        id: req.params.id
+      }
+    })
+    res.status(200).json(PlatoOk)
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
 })
 
 
@@ -274,19 +278,26 @@ server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
 
 
 
-
+// ===============================================================================================
 // =========================================== PEDIDOS ===========================================
-
-
 // crear pedido
 server.post('/nuevopedido', (req,res) => {
   
 });
 
 
-
 // GET de todos los pedidos ADMIN SOLAMENTE
-
+server.get('/pedidosDashboard', async (req,res) => {
+  try {
+    const pedidos = await findAll({
+      // el include le podes pedir lo que hayas definido en el belongsTo de las relaciones
+      include: [{model: Pedido}, {model: Usuario}]
+    });
+    res.status(200).json(pedidos);
+  } catch (error) {
+    res.status(400).json({error:error.message});
+  }
+});
 
 
 // ===============================================================================================
