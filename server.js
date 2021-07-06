@@ -31,107 +31,15 @@ server.use(
     })
   );
 
+  // Importar middlewares de validación
+ const {validarBodyLogin, verificarLogin, validarBodyRegister, validarBodyPlato, validarRolAdmin, validarUsuario, validarUsuarioCorreo} = require('./middlewares');
+
 // ============================
 // ======== ROUTING ===========
 // ============================
+// ================================================================================================
 // =========================================== USUARIOS ===========================================
 
-// VALIDACIONES
-// validación body register
-const validarBodyRegister = (req, res, next) => {
-  if (
-      !req.body.usuario ||
-      !req.body.nombre ||
-      !req.body.correo ||
-      !req.body.telefono ||
-      !req.body.direccion ||
-      !req.body.contrasena ||
-      !req.body.rols_id
-  ) {
-      res.status(400).json({
-          error: "debe registrarse con los datos completos",
-      });
-  } else {
-      next();
-  }
-};
-
-// validación de usuario en DB (validar nombre y correo por separado)
-const validarUsuario = async (req, res, next) => {
-  try {
-    const usuarioExistente = await Usuario.findOne({
-      where: {
-        usuario: req.body.usuario
-      }
-    });
-    if (usuarioExistente) {
-      res.status(409).json({ error: `El usuario pertenece a un usuario registrado` });
-    } else {
-      next();
-    }
-  } catch (error) {
-    res.send({ error: error.message });
-  }
-
-};
-
-const validarUsuarioCorreo = async (req, res, next) => {
-  try {
-    const usuarioExistente = await Usuario.findOne({
-      where: {
-        correo: req.body.correo
-      }
-    });
-
-    if (usuarioExistente) {
-      res.status(409).json({ error: `Ya existe una cuenta registrada con ese correo` });
-    } else {
-      next();
-    }
-  } catch (error) {
-    res.send({ error: error.message });
-  }
-};
-
-
-// validaciones login
-const validarBodyLogin = (req, res, next) => {
-  if (
-      !req.body.correo ||
-      !req.body.contrasena
-  ) {
-      res.status(400).json({
-          error: "debe registrarse con los datos completos",
-      });
-  } else {
-      next();
-  }
-};
-
-const verificarLogin = async (req, res, next) => {
-  try {
-    const loginOk = await Usuario.findOne({
-      where: {
-        correo: req.body.correo,
-        contrasena: req.body.contrasena
-      }
-    });
-
-    if (!loginOk) {
-      res.status(400).json({
-        error: "Credenciales incorrectas"
-      })
-    } else {
-      next();
-    }
-
-  } catch (error) {
-    res.send({ error: error.message });
-  }
-};
-
-
-// RUTAS
 // post register usuario
 server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuario, (req, res) => {
   Usuario.create({
@@ -151,6 +59,8 @@ server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuar
 
 // post login
 server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
+
+  // traer usuario id para mandarlo como payload en token !
   try {
     const token = await jwt.sign(
       {
@@ -177,46 +87,8 @@ server.get('/usuarios', (req, res) => {
 })
 
 
-
+// ================================================================================================
 // =========================================== PLATOS =============================================
-
-// Validación administradores
-const validarRolAdmin = async (req, res, next) => {
-  try {
-    const usuario = await Usuario.findOne({
-      where: {
-        correo: req.user.correo
-      }
-    });
-
-    if (usuario.rols_id === 1) {
-      res.status(400).json({ error: "Acceso denegado. Solo para administradores" });
-    } else {
-      next();
-    }
-    
-  } catch (error) {
-    res.status(400).json({ error: error.message })
-  }
-};
-
-
-const validarBodyPlato = (req, res, next) => {
-  if (
-      !req.body.nombre||
-      !req.body.precio ||
-      !req.body.imagen
-  ) {
-      res.status(400).json({
-          error: "Debe enviar los datos completos del plato",
-      });
-  } else {
-      next();
-  }
-};
-
-
-
 // Crear plato SOLO ADMINS
 server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
   try {
@@ -237,7 +109,11 @@ server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
 // Leer platos
 server.get('/platos', async (req, res) => {
   try {
-    const allPlatos = await Plato.findAll();
+    const allPlatos = await Plato.findAll({
+      where: {
+        activo: 1
+      }
+    });
     res.status(200).json(allPlatos);
   } catch (error) {
     res.status(404).json({ error: error.message })
@@ -258,9 +134,56 @@ server.get('/plato/:id', async (req, res) => {
   }
 })
 
-
 // Actualizar plato x id SOLO ADMINS
+server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
+  // update nombre
+  if (req.body.nombre) {
+    Plato.update(
+      { nombre: req.body.nombre },
+      {
+        where: {
+          id: req.params.platoId
+        }
+      }
+    ).then(update => {
+      res.status(200).json(update);
+    }).catch(error => {
+      res.status(400).send({ error: error.message })
+    })
+  }
 
+  // update precio
+  if (req.body.precio) {
+    Plato.update(
+      { precio: req.body.precio },
+      {
+        where: {
+          id: req.params.platoId
+        }
+      }
+    ).then(update => {
+      res.status(200).json(update);
+    }).catch(error => {
+      res.status(400).send({ error: error.message })
+    })
+  }
+
+  // update imagen
+  if(req.body.imagen) {
+    Plato.update(
+      { imagen: req.body.imagen },
+      {
+        where: {
+          id: req.params.platoId
+        }
+      }
+    ).then(update => {
+      res.status(200).json(update);
+    }).catch(error => {
+      res.status(400).send({ error: error.message })
+    })
+  }
+});
 
 // Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) SOLO ADMINS
 server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
@@ -281,23 +204,88 @@ server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
 // ===============================================================================================
 // =========================================== PEDIDOS ===========================================
 // crear pedido
-server.post('/nuevopedido', (req,res) => {
+server.post('/crearPedido', async (req, res) => {
+
+  const productos = req.body;
+  const forma_de_pago = req.body.forma_de_pago;
+
+  // CALCULAR PRECIO TOTAL DEL PEDIDO
+  const dataProductos = await Promise.all(
+    productos.map(async prod => {
+      const productoDB = await Plato.findByPk(prod.id);
+      return {
+        cantidad: prod.cantidad,
+        precio: productoDB.precio,
+        id: prod.id
+      };
+    })
+  );
   
+  const precio_total = 0;
+  dataProductos.forEach(prod => {
+    precio_total += parseFloat(prod.precio) * parseFloat(prod.cantidad);
+  });
+
+  // CREAR EL PEDIDO
+  try {
+    const nuevoPedido = await Pedido.create({
+      precio_total: precio_total,
+      fecha: Date.now(),
+      estado: "NUEVO",
+      formas_pago: forma_de_pago,
+      usuarios_id: req.user.id
+    })
+
+    // INSERTAR EN TABLA INTERMEDIA
+    await Promise.all(dataProductos.map(async prod => {
+      await PedidoHasPlatos.create({
+        pedido_id: nuevoPedido.id,
+        producto_id: prod.id,
+        cantidad: prod.cantidad
+      }, {
+        // Necesario para insertar en tabla de muchos a muchos
+        fields: ["pedido_id", "producto_id", "cantidad"]
+      });
+    }));
+
+    res.status(200).json(nuevoPedido);
+
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
 });
 
 
 // GET de todos los pedidos ADMIN SOLAMENTE
-server.get('/pedidosDashboard', async (req,res) => {
+server.get('/pedidosDashboard', validarRolAdmin, async (req, res) => {
   try {
     const pedidos = await findAll({
       // el include le podes pedir lo que hayas definido en el belongsTo de las relaciones
-      include: [{model: Pedido}, {model: Usuario}]
+      include: [{ model: Pedido }, { model: Usuario }]
     });
     res.status(200).json(pedidos);
   } catch (error) {
-    res.status(400).json({error:error.message});
+    res.status(400).json({ error: error.message });
   }
 });
+
+// GET pedidos de un usuario "MIS PEDIDOS"
+server.get('/misPedidos', async (req, res) => {
+  try {
+    const misPedidos = await Pedido.findAll({
+      where: {
+        // este user id hay que enviarlo por el token, buscarlo en el middleware y sumarlo como variable
+        usuarios_id: req.user.id
+      },
+      include: {
+        model: Plato
+      }
+    });
+    res.json(misPedidos)
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+})
 
 
 // ===============================================================================================
