@@ -20,7 +20,8 @@ Pedidos.belongsTo(Usuarios, {
 
 // !!!!!
 Pedidos.belongsToMany(Platos, {
-    through: PedidosHasPlatos
+    through: PedidosHasPlatos,
+    foreignKey: 'pedidos_id', otherKey: 'platos_id'
 })
 
 // Patrón de "decorador", importo, decoro con relaciones, vuelvo a exportar
