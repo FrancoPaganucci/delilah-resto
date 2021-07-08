@@ -1,6 +1,6 @@
 // instanciar modelos
-const { Rol, Usuario, Pedido, Plato, PedidoHasPlatos } = require('./models/relations');
-const { findAll } = require('./models/rol');
+const { Roles, Usuarios, Pedidos, Platos, PedidoHasPlatos } = require('./models/relations');
+const { findAll } = require('./models/roles');
 
 // VALIDACIONES
 // validación body register
@@ -25,7 +25,7 @@ const validarBodyRegister = (req, res, next) => {
   // validación de usuario en DB (validar nombre y correo por separado)
   const validarUsuario = async (req, res, next) => {
     try {
-      const usuarioExistente = await Usuario.findOne({
+      const usuarioExistente = await Usuarios.findOne({
         where: {
           usuario: req.body.usuario
         }
@@ -43,7 +43,7 @@ const validarBodyRegister = (req, res, next) => {
   
   const validarUsuarioCorreo = async (req, res, next) => {
     try {
-      const usuarioExistente = await Usuario.findOne({
+      const usuarioExistente = await Usuarios.findOne({
         where: {
           correo: req.body.correo
         }
@@ -76,7 +76,7 @@ const validarBodyRegister = (req, res, next) => {
   
   const verificarLogin = async (req, res, next) => {
     try {
-      const loginOk = await Usuario.findOne({
+      const loginOk = await Usuarios.findOne({
         where: {
           correo: req.body.correo,
           contrasena: req.body.contrasena
@@ -102,7 +102,7 @@ const validarBodyRegister = (req, res, next) => {
 // Validación administradores
 const validarRolAdmin = async (req, res, next) => {
   try {
-    const usuario = await Usuario.findOne({
+    const usuario = await Usuarios.findOne({
       where: {
         correo: req.user.correo
       }

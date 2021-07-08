@@ -14,8 +14,8 @@ const db = require('./config');
 const server = express();
 const PORT = process.env.APP_PORT;
 // instanciar modelos
-const { Rol, Usuario, Pedido, Plato, PedidoHasPlatos } = require('./models/relations');
-const { findAll } = require('./models/rol');
+const { Roles, Usuarios, Pedidos, Platos, PedidosHasPlatos } = require('./models/relations');
+const { findAll } = require('./models/roles');
 
 // middlewares
 server.use(helmet());
@@ -42,13 +42,14 @@ server.use(
 
 // post register usuario
 server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuario, (req, res) => {
-  Usuario.create({
+  Usuarios.create({
       usuario: req.body.usuario,
       nombre: req.body.nombre,
       correo: req.body.correo,
       telefono: req.body.telefono,
       direccion: req.body.direccion,
       contrasena: req.body.contrasena, 
+      // DEJAR EN DEFAULT ROL DE USUARIO, SOLO SE PUEDE ASIGNAR ADMINS DESDE EL ACCESO A LA DB
       rols_id: req.body.rols_id
   }).then(usuario => {
       res.status(200).json({ usuario });
@@ -62,10 +63,18 @@ server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
 
   // traer usuario id para mandarlo como payload en token !
   try {
+
+    const thisUsuario = await Usuarios.findOne({
+      where: {
+        correo: req.body.correo
+      }
+    });
+    console.log(thisUsuario.id);
     const token = await jwt.sign(
       {
-        usuario: req.body.usuario,
+        usuario: thisUsuario.usuario,
         correo: req.body.correo,
+        id: thisUsuario.id
       },
       secretJWT,
       { expiresIn: "60m" }
@@ -79,7 +88,7 @@ server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
 
 // get usuarios
 server.get('/usuarios', (req, res) => {
-  Usuario.findAll().then(usuarios => {
+  Usuarios.findAll().then(usuarios => {
       res.json(usuarios);
   }).catch(error => {
       res.send(error.message);
@@ -92,7 +101,7 @@ server.get('/usuarios', (req, res) => {
 // Crear plato SOLO ADMINS
 server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
   try {
-    const nuevo_plato = await Plato.create({
+    const nuevo_plato = await Platos.create({
       nombre: req.body.nombre,
       precio: req.body.precio,
       activo: 1,
@@ -109,7 +118,7 @@ server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
 // Leer platos
 server.get('/platos', async (req, res) => {
   try {
-    const allPlatos = await Plato.findAll({
+    const allPlatos = await Platos.findAll({
       where: {
         activo: 1
       }
@@ -123,7 +132,7 @@ server.get('/platos', async (req, res) => {
 // Leer plato x id
 server.get('/plato/:id', async (req, res) => {
   try {
-    const PlatoOk = await Plato.findOne({
+    const PlatoOk = await Platos.findOne({
       where: {
         id: req.params.id
       }
@@ -138,7 +147,7 @@ server.get('/plato/:id', async (req, res) => {
 server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
   // update nombre
   if (req.body.nombre) {
-    Plato.update(
+    Platos.update(
       { nombre: req.body.nombre },
       {
         where: {
@@ -154,7 +163,7 @@ server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
 
   // update precio
   if (req.body.precio) {
-    Plato.update(
+    Platos.update(
       { precio: req.body.precio },
       {
         where: {
@@ -170,7 +179,7 @@ server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
 
   // update imagen
   if(req.body.imagen) {
-    Plato.update(
+    Platos.update(
       { imagen: req.body.imagen },
       {
         where: {
@@ -187,7 +196,7 @@ server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
 
 // Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) SOLO ADMINS
 server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
-  Plato.update(
+  Platos.update(
     {activo : 0},
     {where: {
       id: req.params.platoId
@@ -206,13 +215,13 @@ server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
 // crear pedido
 server.post('/crearPedido', async (req, res) => {
 
-  const productos = req.body;
+  const productos = req.body.platos;
   const forma_de_pago = req.body.forma_de_pago;
 
   // CALCULAR PRECIO TOTAL DEL PEDIDO
   const dataProductos = await Promise.all(
     productos.map(async prod => {
-      const productoDB = await Plato.findByPk(prod.id);
+      const productoDB = await Platos.findByPk(prod.id);
       return {
         cantidad: prod.cantidad,
         precio: productoDB.precio,
@@ -221,14 +230,14 @@ server.post('/crearPedido', async (req, res) => {
     })
   );
   
-  const precio_total = 0;
+  let precio_total = 0;
   dataProductos.forEach(prod => {
     precio_total += parseFloat(prod.precio) * parseFloat(prod.cantidad);
   });
 
   // CREAR EL PEDIDO
   try {
-    const nuevoPedido = await Pedido.create({
+    const nuevoPedido = await Pedidos.create({
       precio_total: precio_total,
       fecha: Date.now(),
       estado: "NUEVO",
@@ -238,13 +247,13 @@ server.post('/crearPedido', async (req, res) => {
 
     // INSERTAR EN TABLA INTERMEDIA
     await Promise.all(dataProductos.map(async prod => {
-      await PedidoHasPlatos.create({
-        pedido_id: nuevoPedido.id,
-        producto_id: prod.id,
+      await PedidosHasPlatos.create({
+        pedidos_id: nuevoPedido.id,
+        platos_id: prod.id,
         cantidad: prod.cantidad
       }, {
         // Necesario para insertar en tabla de muchos a muchos
-        fields: ["pedido_id", "producto_id", "cantidad"]
+        fields: ["pedidos_id", "platos_id", "cantidad"]
       });
     }));
 
@@ -259,9 +268,12 @@ server.post('/crearPedido', async (req, res) => {
 // GET de todos los pedidos ADMIN SOLAMENTE
 server.get('/pedidosDashboard', validarRolAdmin, async (req, res) => {
   try {
-    const pedidos = await findAll({
+    const pedidos = await Pedidos.findAll({
       // el include le podes pedir lo que hayas definido en el belongsTo de las relaciones
-      include: [{ model: Pedido }, { model: Usuario }]
+      include: [
+        { model: Platos },
+        { model: Usuarios, attributes: ["nombre"] },
+      ],
     });
     res.status(200).json(pedidos);
   } catch (error) {
@@ -272,14 +284,11 @@ server.get('/pedidosDashboard', validarRolAdmin, async (req, res) => {
 // GET pedidos de un usuario "MIS PEDIDOS"
 server.get('/misPedidos', async (req, res) => {
   try {
-    const misPedidos = await Pedido.findAll({
+    const misPedidos = await Pedidos.findAll({
       where: {
-        // este user id hay que enviarlo por el token, buscarlo en el middleware y sumarlo como variable
         usuarios_id: req.user.id
       },
-      include: {
-        model: Plato
-      }
+      include: [{ model: Platos }]
     });
     res.json(misPedidos)
   } catch (error) {
@@ -295,7 +304,7 @@ server.listen(PORT, () => {
 
   // Conectarse a la base de datos cuando levanta el servidor
   // force true: DROP TABLES (no queremos que reinicie las tablas constantemente!)
-  db.sync({ force: false }).then(() => {
+  db.authenticate().then(() => {
     console.log("Succesfully connected to database");
   }).catch(error => {
     console.log("Se ha producido un error: " + error);
