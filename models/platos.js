@@ -1,29 +1,28 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('..');
+const sequelize = require('../config');
 
-const Plato = sequelize.define('plato', {
+const Platos = sequelize.define('platos', {
     nombre: {
         type: DataTypes.STRING,
-        allowNull = false
+        notNull: true
     },
     precio: {
         type: DataTypes.DOUBLE,
-        allowNull = false
+        notNull: true
     },
     activo: {
-        type: DataTypes.TINYINT,
-        allowNull = false
+        type: DataTypes.BOOLEAN,
+        notNull: true
     },
     imagen: {
         type: DataTypes.STRING,
-        allowNull = false
+        notNull: true
     },
 
 }, {
     timestamps: false,
     tableName: "platos",
-    modelName: "plato",
-    sequelize
+    underscored: true
 })
 
-module.exports = Plato;
+module.exports = Platos;

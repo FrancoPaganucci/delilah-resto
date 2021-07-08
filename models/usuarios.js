@@ -1,38 +1,39 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('..'); // el '/index/' al ser "index" es opcional
+const sequelize = require('../config'); // el '/index/' al ser "index" es opcional
 
-const Usuario = sequelize.define(
-    'usuario', {
+const Usuarios = sequelize.define(
+    'Usuario', {
     usuario: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     nombre: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     correo: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     telefono: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     direccion: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
     contrasena: {
         type: DataTypes.STRING,
-        allowNull: false
+        notNull: true
     },
 
 }, {
     timestamps: false,
     tableName: "usuarios",
     modelname: "usuario",
+    underscored: true,
     sequelize
 })
 
-module.exports = Usuario;
+module.exports = Usuarios;
