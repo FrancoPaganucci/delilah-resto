@@ -137,4 +137,5 @@ const validarBodyPlato = (req, res, next) => {
 
 // middlewares a hacer : para crear un plato (SOLO ADMIN) / validar vody al crear pedidos
 
+
 module.exports = {validarBodyLogin, validarBodyPlato, validarBodyRegister, validarRolAdmin, validarUsuario, validarUsuarioCorreo, verificarLogin};

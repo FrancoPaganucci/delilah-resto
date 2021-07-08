@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config'); // el '/index/' al ser "index" es opcional
 
 const Pedidos = sequelize.define('pedidos', {
+
     precio_total: {
         type: DataTypes.DOUBLE,
         notNull: true

@@ -37,3 +37,4 @@ const Usuarios = sequelize.define(
 })
 
 module.exports = Usuarios;
+

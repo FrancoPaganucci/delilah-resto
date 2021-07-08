@@ -34,4 +34,5 @@ const PedidosHasPlatos = sequelize.define('PedidosHasPlatos', {
     sequelize
 })
 
+
 module.exports = PedidosHasPlatos;
