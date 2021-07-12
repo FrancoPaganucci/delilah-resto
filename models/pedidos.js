@@ -16,7 +16,7 @@ const Pedidos = sequelize.define('pedidos', {
         notNull: true
     },
     formas_pago: {
-        type: DataTypes.ENUM('CREDITO','CASH','DEBITO','MP'),
+        type: DataTypes.ENUM('CREDITO','CASH','DEBITO','PAYPAL','MP'),
         notNull: true
     },
 

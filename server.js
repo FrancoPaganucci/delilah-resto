@@ -32,7 +32,7 @@ server.use(
   );
 
   // Importar middlewares de validación
- const {validarBodyLogin, verificarLogin, validarBodyRegister, validarBodyPlato, validarRolAdmin, validarUsuario, validarUsuarioCorreo} = require('./middlewares');
+ const {validarBodyLogin, verificarLogin, validarBodyRegister, validarBodyPlato, validarRolAdmin, validarUsuario, validarUsuarioCorreo, validarBodyPedido, validarBodyActualizarPedido} = require('./middlewares');
 
 // ============================
 // ======== ROUTING ===========
@@ -98,7 +98,7 @@ server.get('/usuarios', (req, res) => {
 
 // ================================================================================================
 // =========================================== PLATOS =============================================
-// Crear plato SOLO ADMINS
+// Crear plato SOLO ADMINS (CREATE)
 server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
   try {
     const nuevo_plato = await Platos.create({
@@ -115,7 +115,7 @@ server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
 
 });
 
-// Leer platos
+// Leer platos (READ)
 server.get('/platos', async (req, res) => {
   try {
     const allPlatos = await Platos.findAll({
@@ -143,7 +143,7 @@ server.get('/plato/:id', async (req, res) => {
   }
 })
 
-// Actualizar plato x id SOLO ADMINS
+// Actualizar plato x id SOLO ADMINS (UPDATE)
 server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
   // update nombre
   if (req.body.nombre) {
@@ -194,18 +194,19 @@ server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
   }
 });
 
-// Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) SOLO ADMINS
-server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
-  Platos.update(
-    {activo : 0},
-    {where: {
-      id: req.params.platoId
-    }}
-  ).then(update => {
-    res.status(200).json(update);
-  }).catch(error => {
+// Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) (DELETE)
+server.put('/borrarPlato/:platoId', validarRolAdmin, async (req,res) => {
+  try {
+    const platoBorrado = await Platos.update(
+      {activo : 0},
+      {where: {
+        id: req.params.platoId
+      }});
+
+      res.status(200).json(platoBorrado);
+  } catch (error) {
     res.status(400).send({error: error.message})
-  })
+  }
 });
 
 
@@ -213,7 +214,7 @@ server.put('/borrarPlato/:platoId', validarRolAdmin, (req,res) => {
 // ===============================================================================================
 // =========================================== PEDIDOS ===========================================
 // crear pedido
-server.post('/crearPedido', async (req, res) => {
+server.post('/crearPedido', validarBodyPedido, async (req, res) => {
 
   const productos = req.body.platos;
   const forma_de_pago = req.body.forma_de_pago;
@@ -288,7 +289,7 @@ server.get('/misPedidos', async (req, res) => {
       where: {
         usuarios_id: req.user.id
       },
-      include: [{ model: Platos }]
+      include: [{ model: Platos }],
     });
     res.json(misPedidos)
   } catch (error) {
@@ -296,6 +297,20 @@ server.get('/misPedidos', async (req, res) => {
   }
 })
 
+// ACTUALIZAR ESTADO DE PEDIDO SOLO ADMIN
+server.put('/actualizarEstadoDePedido/:pedidoId', validarRolAdmin, validarBodyActualizarPedido, async (req,res) => {
+  try {
+    const estadoActualizado = await Pedidos.update(
+      {estado : req.nuevoEstado},
+      {where: {
+        id: req.params.pedidoId
+      }});
+
+      res.status(200).json(estadoActualizado);
+  } catch (error) {
+    res.status(400).send({error: error.message})
+  }
+});
 
 // ===============================================================================================
 //=================================== INICIALIZAR EL SERVIDOR ====================================

@@ -22,7 +22,9 @@ const validarBodyRegister = (req, res, next) => {
     }
   };
   
-  // validación de usuario en DB (validar nombre y correo por separado)
+  //==============================================================================================
+//==============================================================================================
+  // validación USUARIOS
   const validarUsuario = async (req, res, next) => {
     try {
       const usuarioExistente = await Usuarios.findOne({
@@ -59,8 +61,9 @@ const validarBodyRegister = (req, res, next) => {
     }
   };
   
-  
-  // validaciones login
+//==============================================================================================
+//==============================================================================================
+  // validaciones LOGIN
   const validarBodyLogin = (req, res, next) => {
     if (
         !req.body.correo ||
@@ -99,7 +102,7 @@ const validarBodyRegister = (req, res, next) => {
 
 //==============================================================================================
 //==============================================================================================
-// Validación administradores
+// Validación ADMIN
 const validarRolAdmin = async (req, res, next) => {
   try {
     const usuario = await Usuarios.findOne({
@@ -119,7 +122,9 @@ const validarRolAdmin = async (req, res, next) => {
   }
 };
 
-
+//==============================================================================================
+//==============================================================================================
+// Validaciones PLATOS
 const validarBodyPlato = (req, res, next) => {
   if (
       !req.body.nombre||
@@ -134,8 +139,31 @@ const validarBodyPlato = (req, res, next) => {
   }
 };
 
+//==============================================================================================
+//==============================================================================================
+// Validaciones PEDIDOS
+const validarBodyPedido = (req, res, next) => {
+  const productos = req.body.platos;
+  const forma_de_pago = req.body.forma_de_pago;
+  if (
+    !productos||
+    !forma_de_pago
+  ) {
+    res.status(400).json({ error: "Información incompleta. Forma de pago, id de plato y cantidad necesarias." })
+  } else {
+    next();
+  }
+};
 
-// middlewares a hacer : para crear un plato (SOLO ADMIN) / validar vody al crear pedidos
+const validarBodyActualizarPedido = (req, res, next) => {
+  let nuevoEstado = req.body.estado;
 
+  if (nuevoEstado == 2 || nuevoEstado == 3 || nuevoEstado == 4 || nuevoEstado == 5 || nuevoEstado == 6) {
+    req.nuevoEstado = nuevoEstado;
+    next();
+  } else {
+    res.status(400).json({error: "Los estados de un pedido solo pueden ser: 'PREPARANDO', 'CONFIRMADO','ENVIANDO','CANCELADO','ENTREGADO'. Por favor ingrese uno de los estados mencionados para actualizar el estado del pedido."});
+  }
+};
 
-module.exports = {validarBodyLogin, validarBodyPlato, validarBodyRegister, validarRolAdmin, validarUsuario, validarUsuarioCorreo, verificarLogin};
+module.exports = {validarBodyLogin, validarBodyPlato, validarBodyRegister, validarRolAdmin, validarUsuario, validarUsuarioCorreo, verificarLogin, validarBodyPedido, validarBodyActualizarPedido};
