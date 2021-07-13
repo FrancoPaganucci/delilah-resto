@@ -50,7 +50,7 @@ server.post('/register', validarBodyRegister, validarUsuarioCorreo, validarUsuar
       direccion: req.body.direccion,
       contrasena: req.body.contrasena, 
       // DEJAR EN DEFAULT ROL DE USUARIO, SOLO SE PUEDE ASIGNAR ADMINS DESDE EL ACCESO A LA DB
-      rols_id: req.body.rols_id
+      rols_id: 1
   }).then(usuario => {
       res.status(200).json({ usuario });
   }).catch(error => {
@@ -87,7 +87,7 @@ server.post('/login', validarBodyLogin, verificarLogin, async (req, res) => {
 });
 
 // get usuarios
-server.get('/usuarios', (req, res) => {
+server.get('/usuarios', validarRolAdmin, (req, res) => {
   Usuarios.findAll().then(usuarios => {
       res.json(usuarios);
   }).catch(error => {
@@ -104,7 +104,7 @@ server.post('/platos', validarBodyPlato, validarRolAdmin, async (req, res) => {
     const nuevo_plato = await Platos.create({
       nombre: req.body.nombre,
       precio: req.body.precio,
-      activo: 1,
+      activo: true,
       imagen: req.body.imagen
     });
 
@@ -130,7 +130,7 @@ server.get('/platos', async (req, res) => {
 });
 
 // Leer plato x id
-server.get('/plato/:id', async (req, res) => {
+server.get('/platos/:id', async (req, res) => {
   try {
     const PlatoOk = await Platos.findOne({
       where: {
@@ -144,7 +144,7 @@ server.get('/plato/:id', async (req, res) => {
 })
 
 // Actualizar plato x id SOLO ADMINS (UPDATE)
-server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
+server.put('/platos/actualizar/:platoId', validarRolAdmin, (req, res) => {
   // update nombre
   if (req.body.nombre) {
     Platos.update(
@@ -195,10 +195,10 @@ server.put('/actualizarPlato/:platoId', validarRolAdmin, (req, res) => {
 });
 
 // Borrar plato x id (PUT que actualize el activo de 1 a 0, no eliminar registros de la DB) (DELETE)
-server.put('/borrarPlato/:platoId', validarRolAdmin, async (req,res) => {
+server.put('/platos/borrarPlato/:platoId', validarRolAdmin, async (req,res) => {
   try {
     const platoBorrado = await Platos.update(
-      {activo : 0},
+      {activo : false},
       {where: {
         id: req.params.platoId
       }});
@@ -214,7 +214,7 @@ server.put('/borrarPlato/:platoId', validarRolAdmin, async (req,res) => {
 // ===============================================================================================
 // =========================================== PEDIDOS ===========================================
 // crear pedido
-server.post('/crearPedido', validarBodyPedido, async (req, res) => {
+server.post('/pedidos', validarBodyPedido, async (req, res) => {
 
   const productos = req.body.platos;
   const forma_de_pago = req.body.forma_de_pago;
@@ -267,7 +267,7 @@ server.post('/crearPedido', validarBodyPedido, async (req, res) => {
 
 
 // GET de todos los pedidos ADMIN SOLAMENTE
-server.get('/pedidosDashboard', validarRolAdmin, async (req, res) => {
+server.get('/pedidos/dashboard', validarRolAdmin, async (req, res) => {
   try {
     const pedidos = await Pedidos.findAll({
       // el include le podes pedir lo que hayas definido en el belongsTo de las relaciones
@@ -283,7 +283,7 @@ server.get('/pedidosDashboard', validarRolAdmin, async (req, res) => {
 });
 
 // GET pedidos de un usuario "MIS PEDIDOS"
-server.get('/misPedidos', async (req, res) => {
+server.get('/pedidos/misPedidos', async (req, res) => {
   try {
     const misPedidos = await Pedidos.findAll({
       where: {
@@ -298,7 +298,7 @@ server.get('/misPedidos', async (req, res) => {
 })
 
 // ACTUALIZAR ESTADO DE PEDIDO SOLO ADMIN
-server.put('/actualizarEstadoDePedido/:pedidoId', validarRolAdmin, validarBodyActualizarPedido, async (req,res) => {
+server.put('/pedidos/actualizarEstado/:pedidoId', validarRolAdmin, validarBodyActualizarPedido, async (req,res) => {
   try {
     const estadoActualizado = await Pedidos.update(
       {estado : req.nuevoEstado},

@@ -11,8 +11,7 @@ const validarBodyRegister = (req, res, next) => {
         !req.body.correo ||
         !req.body.telefono ||
         !req.body.direccion ||
-        !req.body.contrasena ||
-        !req.body.rols_id
+        !req.body.contrasena
     ) {
         res.status(400).json({
             error: "debe registrarse con los datos completos",

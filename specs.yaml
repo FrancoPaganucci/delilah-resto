@@ -1,0 +1,456 @@
+info:
+  description: >-
+    API para pedidos de comida deliciosa. Como cliente, podrás registrarte, ver
+    el listado de nuestros productos y realizar una orden. Los administradores
+    del restaurante tienen la posibilidad de recibir pedidos y actualizarlos
+  title: Delilah Resto
+  version: 1.0.0
+swagger: '2.0'
+host: api.foro.com
+basePath: /v1
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /login:
+    post:
+      summary: Autenticar usuario
+      tags:
+        - auth
+      parameters:
+        - in: body
+          name: body
+          description: Objeto de login
+          required: true
+          schema:
+            $ref: '#/definitions/LoginBody'
+      responses:
+        '200':
+          description: jwt token
+        '401':
+          description: error de authenticacion
+        default:
+          description: unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /register:
+    post:
+      summary: Registrar nuevo usuario
+      tags:
+        - auth
+      parameters:
+        - in: body
+          name: body
+          description: Objeto de register
+          required: true
+          schema:
+            $ref: '#/definitions/RegisterBody'
+      responses:
+        '200':
+          description: body de usuario
+          schema:
+            $ref: '#/definitions/Usuario'
+        '401':
+          description: error de authenticacion
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  /usuarios:
+    get:
+      summary: Obtener todos los usuarios
+      tags:
+        - usuarios
+      parameters:
+        - in: body
+          name: body
+          description: Objeto de register
+          required: true
+          schema:
+            $ref: '#/definitions/RegisterBody'
+      responses:
+        '200':
+          description: body de usuario
+          schema:
+            $ref: '#/definitions/Usuario'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  /platos:
+    post:
+      summary: Crear plato (solo admins)
+      tags:
+        - platos
+      parameters:
+        - in: body
+          name: body
+          description: Objeto de plato
+          required: true
+          schema:
+            $ref: '#/definitions/CrearPlatoBody'
+      responses:
+        '200':
+          description: body de plato
+          schema:
+            $ref: '#/definitions/Plato'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+    get:
+      summary: Leer platos
+      tags:
+        - platos
+      responses:
+        '200':
+          description: Array de platos
+          schema:
+            $ref: '#/definitions/Plato'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  '/platos/{id}':
+    get:
+      summary: Leer platos por ID
+      tags:
+        - platos
+      parameters:
+        - type: integer
+          in: path
+          name: id
+          description: Id
+          required: true
+      responses:
+        '200':
+          description: Objeto Plato
+          schema:
+            $ref: '#/definitions/Plato'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  '/platos/actualizarPlato/{platoId}':
+    put:
+      summary: Actualizar platos por ID (solo admins)
+      tags:
+        - platos
+      parameters:
+        - type: integer
+          in: path
+          name: platoId
+          description: Id
+          required: true
+        - in: body
+          name: body
+          description: >-
+            Objeto con propiedad de plato a actualizar. No es necesario enviar
+            todas las propiedades del objeto Plato ('nombre','precio','imagen')
+          required: true
+          schema:
+            $ref: '#/definitions/CrearPlatoBody'
+      responses:
+        '200':
+          description: Integer '1' for success
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  '/platos/borrarPlato/{platoId}':
+    put:
+      summary: Borrar platos por ID (solo admins)
+      tags:
+        - platos
+      parameters:
+        - type: integer
+          in: path
+          name: platoId
+          description: Id
+          required: true
+      responses:
+        '200':
+          description: Integer '1' for success
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  /pedidos:
+    post:
+      summary: Crear pedido
+      tags:
+        - pedidos
+      parameters:
+        - in: body
+          name: body
+          description: Objeto de plato
+          required: true
+          schema:
+            $ref: '#/definitions/CrearPedidoBody'
+      responses:
+        '200':
+          description: body de pedido
+          schema:
+            $ref: '#/definitions/Pedido'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  /pedidos/dashboard:
+    get:
+      summary: Ver todos los pedidos (solo admins)
+      tags:
+        - pedidos
+      responses:
+        '200':
+          description: array de objetos de pedidos
+          schema:
+            $ref: '#/definitions/PedidosConPlatos'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  /pedidos/misPedidos:
+    get:
+      summary: Ver pedidos de usuario ('mis pedidos')
+      tags:
+        - pedidos
+      responses:
+        '200':
+          description: array de objetos de pedidos
+          schema:
+            $ref: '#/definitions/PedidosConPlatos'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  '/pedidos/actualizarEstado/{pedidoId}':
+    put:
+      summary: Actualizar platos por ID (solo admins)
+      tags:
+        - pedidos
+      parameters:
+        - type: integer
+          in: path
+          name: pedidoId
+          description: Id
+          required: true
+        - in: body
+          name: body
+          description: >-
+            objeto con propiedad 'estado' con rango 2-6:  (NUEVO (1), PREPARANDO
+            (2), CONFIRMADO (3), ENVIANDO (4), CANCELADO (5), ENTREGADO (6).
+          required: true
+          schema:
+            $ref: '#/definitions/ActualizarEstado'
+      responses:
+        '200':
+          description: Integer '1' for success
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+definitions:
+  Usuario:
+    properties:
+      id:
+        type: integer
+        format: int64
+      usuario:
+        type: string
+      nombre:
+        type: string
+      correo:
+        type: string
+        format: mail
+      telefono:
+        type: string
+        format: tel
+      direccion:
+        type: string
+        format: address
+      contrasena:
+        type: string
+        format: password
+  LoginBody:
+    required:
+      - correo
+      - contrasena
+    properties:
+      correo:
+        type: string
+        format: mail
+      contrasena:
+        type: string
+        format: password
+  RegisterBody:
+    required:
+      - usuario
+      - nombre
+      - correo
+      - telefono
+      - direccion
+      - contrasena
+    properties:
+      usuario:
+        type: string
+      nombre:
+        type: string
+      correo:
+        type: string
+        format: mail
+      telefono:
+        type: string
+        format: tel
+      direccion:
+        type: string
+        format: address
+      contrasena:
+        type: string
+        format: password
+  CrearPlatoBody:
+    required:
+      - nombre
+      - precio
+      - imagen
+    properties:
+      nombre:
+        type: string
+      precio:
+        type: integer
+        format: int64
+      imagen:
+        type: string
+  Plato:
+    properties:
+      id:
+        type: integer
+        format: int64
+      nombre:
+        type: string
+      precio:
+        type: integer
+        format: int64
+      activo:
+        type: boolean
+        default: 'true'
+      imagen:
+        type: string
+  CrearPedidoBody:
+    required:
+      - forma_de_pago
+      - platos
+    properties:
+      forma_de_pago:
+        type: string
+        enum:
+          - NUEVO
+          - PREPARANDO
+          - CONFIRMADO
+          - ENVIANDO
+          - CANCELADO
+          - ENTREGADO
+      platos:
+        type: object
+        properties:
+          id:
+            type: integer
+          cantidad:
+            type: integer
+  Pedido:
+    properties:
+      id:
+        type: integer
+        format: int64
+      precio_total:
+        type: integer
+        format: int64
+      fecha:
+        type: string
+        format: date
+      estado:
+        type: string
+        enum:
+          - NUEVO
+          - PREPARANDO
+          - CONFIRMADO
+          - ENVIANDO
+          - CANCELADO
+          - ENTREGADO
+      formas_pago:
+        type: string
+        enum:
+          - CREDITO
+          - PREPARANDO
+          - ENVIANDO
+          - CANCELADO
+          - ENTREGADO
+      usuarios_id:
+        type: integer
+  PedidosConPlatos:
+    properties:
+      id:
+        type: integer
+        format: int64
+      precio_total:
+        type: integer
+        format: int64
+      fecha:
+        type: string
+        format: date
+      estado:
+        type: string
+        enum:
+          - NUEVO
+          - PREPARANDO
+          - CONFIRMADO
+          - ENVIANDO
+          - CANCELADO
+          - ENTREGADO
+      formas_pago:
+        type: string
+        enum:
+          - CREDITO
+          - PREPARANDO
+          - ENVIANDO
+          - CANCELADO
+          - ENTREGADO
+      usuarios_id:
+        type: integer
+      platos:
+        type: object
+        properties:
+          id:
+            type: integer
+          nombre:
+            type: string
+          precio:
+            type: integer
+          activo:
+            type: boolean
+          imagen:
+            type: string
+          PedidosHasPlatos:
+            type: object
+            properties:
+              pedidos_id:
+                type: integer
+              platos_id:
+                type: integer
+              cantidad:
+                type: integer
+  ActualizarEstado:
+    properties:
+      estado:
+        type: integer
+        enum:
+          - 2
+          - 3
+          - 4
+          - 5
+          - 6
+  Error:
+    properties:
+      message:
+        type: string
