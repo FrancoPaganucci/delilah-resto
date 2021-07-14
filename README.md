@@ -1,3 +1,7 @@
+--------------------------------------------------------------------------------------------------------------------------
+"Este proyecto plantea la creación de un sistema de pedidos online para un restaurante. Se implementaron las partes necesarias para montar una REST API que permita realizar altas, bajas, modificaciones y obtención de información sobre una estructura de datos que podría consumir un cliente. Parte del desafío está enfocado en lograr que el desarrollo del proyecto sea puesto en producción utilizando web services."
+--------------------------------------------------------------------------------------------------------------------------
+
 ==> Pasos para crear la base de datos:
     1) Descargar e instalar MySQL Workbench o utilizar PhpMyAdmin a través de XAMPP. Para crear la base de datos, ejecutar el código SQL que se encuentra en el archivo 'create_DB_query.txt'.
     *** Importante: El nombre de la base de datos debe ser 'proyectodelilah'.
@@ -20,5 +24,5 @@ DB_PORT=3306
 APP_PORT=3000
 
 ==> Testing con Postman: Para realizar tests en los endpoints, puede utilizar Postman.
---------------------------------------------------------------------------------------------------------------------------
-"Este proyecto plantea la creación de un sistema de pedidos online para un restaurante. Se implementaron las partes necesarias para montar una REST API que permita realizar altas, bajas, modificaciones y obtención de información sobre una estructura de datos que podría consumir un cliente. Parte del desafío está enfocado en lograr que el desarrollo del proyecto sea puesto en producción utilizando web services."
+
+==> Enlace al repositorio del proyecto: https://github.com/FrancoPaganucci/delilah-resto
