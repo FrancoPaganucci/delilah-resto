@@ -165,4 +165,26 @@ const validarBodyActualizarPedido = (req, res, next) => {
   }
 };
 
-module.exports = {validarBodyLogin, validarBodyPlato, validarBodyRegister, validarRolAdmin, validarUsuario, validarUsuarioCorreo, verificarLogin, validarBodyPedido, validarBodyActualizarPedido};
+const validarPedidoId = async (req, res, next) => {
+
+  try {
+    const pedidoExistente = await Pedidos.findOne({
+      where: {
+        id: req.params.id
+      }
+    });
+
+    if (!pedidoExistente) {
+      res.status(409).json({ error: "El pedido a eliminar no existe" });
+    } else {
+      next();
+    }
+
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+};
+
+
+
+module.exports = {validarBodyLogin, validarBodyPlato, validarBodyRegister, validarRolAdmin, validarUsuario, validarUsuarioCorreo, verificarLogin, validarBodyPedido, validarBodyActualizarPedido, validarPedidoId};

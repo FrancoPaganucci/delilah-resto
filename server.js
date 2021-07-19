@@ -32,7 +32,7 @@ server.use(
   );
 
   // Importar middlewares de validación
- const {validarBodyLogin, verificarLogin, validarBodyRegister, validarBodyPlato, validarRolAdmin, validarUsuario, validarUsuarioCorreo, validarBodyPedido, validarBodyActualizarPedido} = require('./middlewares');
+ const {validarBodyLogin, verificarLogin, validarBodyRegister, validarBodyPlato, validarRolAdmin, validarUsuario, validarUsuarioCorreo, validarBodyPedido, validarBodyActualizarPedido, validarPedidoId} = require('./middlewares');
 
 // ============================
 // ======== ROUTING ===========
@@ -310,6 +310,34 @@ server.put('/pedidos/actualizarEstado/:pedidoId', validarRolAdmin, validarBodyAc
   } catch (error) {
     res.status(400).send({error: error.message})
   }
+});
+
+// ELIMINAR PEDIDO SOLO ADMIN
+server.delete('/pedidos/borrar/:id', validarRolAdmin, validarPedidoId, async (req, res) => {
+  try {
+    await PedidosHasPlatos.destroy({
+      where: {
+        pedidos_id: req.params.id
+      }
+    });
+
+    res.status(200).json({ message: `Operación exitosa, el pedido con id ${req.params.id} ha sido eliminado.` })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+
+  try {
+    await Pedidos.destroy({
+      where: {
+        id: req.params.id
+      }
+    });
+
+    res.status(200).json({ message: `Operación exitosa, el pedido con id ${req.params.id} ha sido eliminado.` })
+  } catch (error) {
+    res.status(400).json({ error: error.message })
+  }
+
 });
 
 // ===============================================================================================

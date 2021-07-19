@@ -227,7 +227,7 @@ paths:
             $ref: '#/definitions/Error'
   '/pedidos/actualizarEstado/{pedidoId}':
     put:
-      summary: Actualizar platos por ID (solo admins)
+      summary: Actualizar pedidos por ID (solo admins)
       tags:
         - pedidos
       parameters:
@@ -247,6 +247,24 @@ paths:
       responses:
         '200':
           description: Integer '1' for success
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/Error'
+  '/pedidos/borrar/{pedidoId}':
+    delete:
+      summary: Eliminar pedidos por ID (solo admins)
+      tags:
+        - pedidos
+      parameters:
+        - type: integer
+          in: path
+          name: pedidoId
+          description: Id
+          required: true
+      responses:
+        '200':
+          description: success message
         default:
           description: error
           schema:
